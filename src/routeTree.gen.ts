@@ -13,6 +13,7 @@ import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
 import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
 
 const EmployeeRoute = EmployeeRouteImport.update({
@@ -35,6 +36,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminProjectsRoute = AdminProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEmployeesRoute = AdminEmployeesRouteImport.update({
   id: '/employees',
   path: '/employees',
@@ -46,12 +52,14 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/employee': typeof EmployeeRoute
   '/admin/employees': typeof AdminEmployeesRoute
+  '/admin/projects': typeof AdminProjectsRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/employee': typeof EmployeeRoute
   '/admin/employees': typeof AdminEmployeesRoute
+  '/admin/projects': typeof AdminProjectsRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -60,14 +68,28 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/employee': typeof EmployeeRoute
   '/admin/employees': typeof AdminEmployeesRoute
+  '/admin/projects': typeof AdminProjectsRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/employee' | '/admin/employees' | '/admin/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/employee'
+    | '/admin/employees'
+    | '/admin/projects'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/employee' | '/admin/employees' | '/admin'
-  id: '__root__' | '/' | '/admin' | '/employee' | '/admin/employees' | '/admin/'
+  to: '/' | '/employee' | '/admin/employees' | '/admin/projects' | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/employee'
+    | '/admin/employees'
+    | '/admin/projects'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +128,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/projects': {
+      id: '/admin/projects'
+      path: '/projects'
+      fullPath: '/admin/projects'
+      preLoaderRoute: typeof AdminProjectsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/employees': {
       id: '/admin/employees'
       path: '/employees'
@@ -118,11 +147,13 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminEmployeesRoute: typeof AdminEmployeesRoute
+  AdminProjectsRoute: typeof AdminProjectsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminEmployeesRoute: AdminEmployeesRoute,
+  AdminProjectsRoute: AdminProjectsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
