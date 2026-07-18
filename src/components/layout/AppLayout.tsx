@@ -11,7 +11,9 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/UserAvatar";
-import { useStore, formatDateTime } from "@/lib/mock-store";
+import { BrandLogo } from "@/components/BrandLogo";
+import { useStore, formatDateTime } from "@/lib/api-store";
+import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "./nav-items";
 
@@ -62,9 +64,7 @@ export function AppLayout({
 }) {
   const navigate = useNavigate();
   const { currentUser, notifications, markNotificationRead, logout } = useStore();
-  const myNotifs = notifications.filter((n) =>
-    role === "Admin" ? n.userId === "u-admin" : n.userId === currentUser?.id,
-  );
+  const myNotifs = notifications.filter((n) => n.userId === currentUser?.id);
   const unread = myNotifs.filter((n) => !n.read).length;
 
   const handleLogout = () => {
@@ -78,11 +78,9 @@ export function AppLayout({
         <Sidebar collapsible="icon" className="border-r border-sidebar-border">
           <SidebarHeader className="border-b border-sidebar-border">
             <div className="flex items-center gap-2 px-2 py-2">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold">
-                P
-              </div>
+              <BrandLogo compact showText={false} />
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-                <p className="truncate font-semibold text-sidebar-foreground">Prism</p>
+                <p className="truncate font-semibold text-sidebar-foreground">{APP_NAME}</p>
                 <p className="truncate text-xs text-sidebar-foreground/60">{role} workspace</p>
               </div>
             </div>
@@ -95,7 +93,7 @@ export function AppLayout({
               {currentUser ? <UserAvatar name={currentUser.name} className="h-8 w-8" /> : null}
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                 <p className="truncate text-sm font-medium text-sidebar-foreground">{currentUser?.name}</p>
-                <p className="truncate text-xs text-sidebar-foreground/60">{currentUser?.email}</p>
+                <p className="truncate text-xs text-sidebar-foreground/60">@{currentUser?.username}</p>
               </div>
             </div>
           </SidebarFooter>
@@ -106,7 +104,7 @@ export function AppLayout({
             <SidebarTrigger />
             <div className="relative ml-2 hidden max-w-md flex-1 md:block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search projects, tasks, reports…" className="pl-9" />
+              <Input placeholder="Search projects and reports" className="pl-9" />
             </div>
             <div className="ml-auto flex items-center gap-1">
               <DropdownMenu>
@@ -150,7 +148,7 @@ export function AppLayout({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>{currentUser?.email}</DropdownMenuLabel>
+                  <DropdownMenuLabel>@{currentUser?.username}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" /> Sign out

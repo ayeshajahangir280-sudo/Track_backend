@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatDate, useStore } from "@/lib/mock-store";
+import { formatDate, useStore } from "@/lib/api-store";
 
 export const Route = createFileRoute("/employee/reports")({ component: MyReports });
 
@@ -19,12 +19,14 @@ function MyReports() {
           return (
             <Link key={r.id} to="/employee/reports/$id" params={{ id: r.id }}>
               <Card className="transition hover:border-accent"><CardContent className="flex flex-wrap items-center gap-4 p-4">
-                <div className="min-w-0 flex-1"><p className="font-medium">{formatDate(r.date)} — {p?.name}</p><p className="text-sm text-muted-foreground line-clamp-1">{r.completed}</p></div>
+                <div className="min-w-0 flex-1"><p className="font-medium">{formatDate(r.date)} - {p?.name}</p><p className="text-sm text-muted-foreground line-clamp-1">{r.completed}</p></div>
+                <span className="text-sm text-muted-foreground">{r.timeSpent}h</span>
                 <StatusBadge value={r.status} />
               </CardContent></Card>
             </Link>
           );
         })}
+        {list.length === 0 && <p className="text-sm text-muted-foreground">No reports submitted yet.</p>}
       </div>
     </div>
   );

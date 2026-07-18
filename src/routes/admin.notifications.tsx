@@ -4,17 +4,17 @@ import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDateTime, useStore } from "@/lib/mock-store";
+import { formatDateTime, useStore } from "@/lib/api-store";
 
 export const Route = createFileRoute("/admin/notifications")({ component: NotificationsPage });
 
 function NotificationsPage() {
-  const { notifications, markNotificationRead, markAllNotificationsRead } = useStore();
-  const list = notifications.filter((n) => n.userId === "u-admin");
+  const { currentUser, notifications, markNotificationRead, markAllNotificationsRead } = useStore();
+  const list = notifications.filter((n) => n.userId === currentUser?.id);
   return (
     <div className="space-y-6">
       <PageHeader title="Notifications" description="All alerts for the admin account." actions={
-        <Button variant="outline" onClick={() => markAllNotificationsRead("u-admin")}>Mark all read</Button>
+        <Button variant="outline" onClick={() => markAllNotificationsRead(currentUser?.id)}>Mark all read</Button>
       } />
       <Card><CardContent className="p-0">
         {list.length === 0 ? <div className="p-6"><EmptyState icon={Bell} title="You're all caught up" /></div> : (

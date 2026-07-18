@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Users, FolderKanban, FileText, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Clock, FileText, FolderKanban, Timer, Users } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { SummaryCard } from "@/components/SummaryCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -7,36 +7,36 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatDateTime, useStore } from "@/lib/mock-store";
+import { formatDate, formatDateTime, useStore } from "@/lib/api-store";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
 });
 
 function AdminDashboard() {
-  const { users, projects, tasks, reports, audit } = useStore();
+  const { users, projects, reports, audit } = useStore();
   const today = new Date().toISOString().slice(0, 10);
   const employees = users.filter((u) => u.role === "employee");
   const activeProjects = projects.filter((p) => p.status === "Active");
   const todaysReports = reports.filter((r) => r.date === today);
   const pendingReviews = reports.filter((r) => r.status === "Submitted" || r.status === "Under Review");
-  const completedTasks = tasks.filter((t) => t.status === "Completed");
-  const overdueTasks = tasks.filter((t) => t.dueDate < today && t.status !== "Completed");
+  const approvedReports = reports.filter((r) => r.status === "Approved");
+  const totalHours = reports.reduce((sum, report) => sum + report.timeSpent, 0);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Dashboard"
-        description="A snapshot of your team's work across projects, tasks and reports."
+        description="A snapshot of your team's projects and daily reports."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <SummaryCard label="Total Employees" value={employees.length} icon={Users} />
+        <SummaryCard label="Employees" value={employees.length} icon={Users} />
         <SummaryCard label="Active Projects" value={activeProjects.length} icon={FolderKanban} tone="accent" />
         <SummaryCard label="Today's Reports" value={todaysReports.length} icon={FileText} tone="success" />
         <SummaryCard label="Pending Reviews" value={pendingReviews.length} icon={Clock} tone="warning" />
-        <SummaryCard label="Completed Tasks" value={completedTasks.length} icon={CheckCircle2} tone="success" />
-        <SummaryCard label="Overdue Tasks" value={overdueTasks.length} icon={AlertTriangle} tone="destructive" />
+        <SummaryCard label="Approved Reports" value={approvedReports.length} icon={CheckCircle2} tone="success" />
+        <SummaryCard label="Logged Hours" value={totalHours.toFixed(1)} icon={Timer} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -60,13 +60,14 @@ function AdminDashboard() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{emp?.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {project?.name} · {formatDate(r.date)}
+                      {project?.name} - {formatDate(r.date)}
                     </p>
                   </div>
                   <StatusBadge value={r.status} />
                 </Link>
               );
             })}
+            {reports.length === 0 && <p className="text-sm text-muted-foreground">No reports submitted yet.</p>}
           </CardContent>
         </Card>
 
@@ -82,42 +83,46 @@ function AdminDashboard() {
                 <Progress value={p.progress} className="h-2" />
               </div>
             ))}
+            {projects.length === 0 && <p className="text-sm text-muted-foreground">No projects yet.</p>}
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
-          <CardHeader><CardTitle>Upcoming deadlines</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Recent projects</CardTitle></CardHeader>
           <CardContent className="space-y-3">
-            {[...projects].sort((a, b) => a.deadline.localeCompare(b.deadline)).slice(0, 5).map((p) => (
+            {projects.slice(0, 5).map((p) => (
               <div key={p.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatDate(p.deadline)}</p>
+                  <p className="text-xs text-muted-foreground">{p.progress}% complete</p>
                 </div>
                 <StatusBadge value={p.priority} />
               </div>
             ))}
+            {projects.length === 0 && <p className="text-sm text-muted-foreground">No projects yet.</p>}
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Pending tasks</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Pending reviews</CardTitle></CardHeader>
           <CardContent className="space-y-3">
-            {tasks.filter((t) => t.status !== "Completed").slice(0, 5).map((t) => {
-              const assignee = users.find((u) => u.id === t.assigneeId);
+            {pendingReviews.slice(0, 5).map((r) => {
+              const emp = users.find((u) => u.id === r.employeeId);
+              const project = projects.find((p) => p.id === r.projectId);
               return (
-                <div key={t.id} className="rounded-lg border p-3">
+                <Link key={r.id} to="/admin/reports/$id" params={{ id: r.id }} className="block rounded-lg border p-3 hover:bg-muted/50">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-medium">{t.title}</p>
-                    <StatusBadge value={t.status} />
+                    <p className="truncate text-sm font-medium">{emp?.name}</p>
+                    <StatusBadge value={r.status} />
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {assignee?.name} · due {formatDate(t.dueDate)}
+                    {project?.name} - {formatDate(r.date)}
                   </p>
-                </div>
+                </Link>
               );
             })}
+            {pendingReviews.length === 0 && <p className="text-sm text-muted-foreground">No pending reviews.</p>}
           </CardContent>
         </Card>
         <Card>
@@ -128,10 +133,11 @@ function AdminDashboard() {
                 <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
                 <div className="min-w-0">
                   <p className="truncate"><span className="font-medium">{a.user}</span> {a.action.toLowerCase()}</p>
-                  <p className="text-xs text-muted-foreground">{a.target} · {formatDateTime(a.createdAt)}</p>
+                  <p className="text-xs text-muted-foreground">{a.target} - {formatDateTime(a.createdAt)}</p>
                 </div>
               </div>
             ))}
+            {audit.length === 0 && <p className="text-sm text-muted-foreground">No activity yet.</p>}
           </CardContent>
         </Card>
       </div>

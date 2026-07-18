@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDateTime, useStore } from "@/lib/mock-store";
+import { formatDateTime, useStore } from "@/lib/api-store";
 
 export const Route = createFileRoute("/admin/audit")({ component: AuditPage });
 

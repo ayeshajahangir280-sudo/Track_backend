@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDate, formatDateTime, useStore, type Comment } from "@/lib/mock-store";
+import { formatDate, formatDateTime, useStore, type Comment } from "@/lib/api-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/reports/$id")({
@@ -21,36 +21,38 @@ export const Route = createFileRoute("/admin/reports/$id")({
 
 function ReportDetails() {
   const { id } = Route.useParams();
-  const { reports, users, projects, tasks, addComment, updateReport, updateTask, logAudit } = useStore();
+  const { currentUser, reports, users, projects, addComment, updateReport, logAudit } = useStore();
   const report = reports.find((r) => r.id === id);
   if (!report) throw notFound();
   const employee = users.find((u) => u.id === report.employeeId);
   const project = projects.find((p) => p.id === report.projectId);
-  const task = tasks.find((t) => t.id === report.taskId);
 
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [type, setType] = useState<Comment["type"]>("Feedback");
 
+  const setStatus = (status: "Changes Required" | "Reviewed" | "Approved") => {
+    updateReport(report.id, { status });
+    logAudit({ user: currentUser?.name ?? "Admin", action: `Marked report ${status.toLowerCase()}`, target: `Report ${report.id}`, type: "review" });
+    toast.success(`Report marked ${status.toLowerCase()}`);
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <Button asChild variant="ghost" size="sm" className="mb-3 -ml-2"><Link to="/admin/reports"><ArrowLeft className="mr-2 h-4 w-4" /> Back to reports</Link></Button>
-        <PageHeader title={`Report — ${employee?.name}`} description={`${project?.name} · ${formatDate(report.date)}`} actions={<StatusBadge value={report.status} />} />
+        <PageHeader title={`Report - ${employee?.name ?? "Employee"}`} description={`${project?.name ?? "Project"} - ${formatDate(report.date)}`} actions={<StatusBadge value={report.status} />} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader><CardTitle>Report details</CardTitle></CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <Section label="Task">{task?.title ?? "—"}</Section>
-            <Section label="Work completed today">{report.completed}</Section>
-            <Section label="Work in progress">{report.inProgress}</Section>
-            <Section label="Problems or blockers">{report.blockers}</Section>
-            <Section label="Plans for next working day">{report.nextPlans}</Section>
+            <Section label="Employee">{employee?.name ?? "Employee"}</Section>
+            <Section label="Project">{project?.name ?? "Project"}</Section>
+            <Section label="Date">{formatDate(report.date)}</Section>
+            <Section label="Description">{report.completed}</Section>
             <Section label="Time spent">{report.timeSpent}h</Section>
-            {report.notes ? <Section label="Notes">{report.notes}</Section> : null}
-            <Section label="Attachments"><p className="text-muted-foreground">No attachments</p></Section>
           </CardContent>
         </Card>
 
@@ -58,12 +60,9 @@ function ReportDetails() {
           <CardHeader><CardTitle>Actions</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             <Button className="w-full" onClick={() => setOpen(true)}>Add comment</Button>
-            <Button variant="outline" className="w-full" onClick={() => { updateReport(report.id, { status: "Changes Required" }); logAudit({ user: "Sarah Mitchell", action: "Requested changes", target: `Report ${report.id}`, type: "review" }); toast.success("Changes requested"); }}>Request changes</Button>
-            <Button variant="outline" className="w-full" onClick={() => { updateReport(report.id, { status: "Reviewed" }); logAudit({ user: "Sarah Mitchell", action: "Reviewed report", target: `Report ${report.id}`, type: "review" }); toast.success("Marked reviewed"); }}>Mark reviewed</Button>
-            <Button variant="outline" className="w-full" onClick={() => { updateReport(report.id, { status: "Approved" }); toast.success("Report approved"); }}>Approve report</Button>
-            {task ? (
-              <Button variant="outline" className="w-full" onClick={() => { updateTask(task.id, { status: "Completed" }); toast.success("Task marked completed"); }}>Mark task completed</Button>
-            ) : null}
+            <Button variant="outline" className="w-full" onClick={() => setStatus("Changes Required")}>Request changes</Button>
+            <Button variant="outline" className="w-full" onClick={() => setStatus("Reviewed")}>Mark reviewed</Button>
+            <Button variant="outline" className="w-full" onClick={() => setStatus("Approved")}>Approve report</Button>
           </CardContent>
         </Card>
       </div>
@@ -104,7 +103,7 @@ function ReportDetails() {
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button onClick={() => {
               if (!text) { toast.error("Comment required"); return; }
-              addComment(report.id, { authorId: "u-admin", authorName: "Sarah Mitchell", text, type });
+              addComment(report.id, { authorId: currentUser?.id ?? "", authorName: currentUser?.name ?? "Admin", text, type });
               setText(""); setOpen(false); toast.success("Comment added");
             }}>Add</Button>
           </DialogFooter>

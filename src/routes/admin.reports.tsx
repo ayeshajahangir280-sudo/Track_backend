@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { FileText, Search } from "lucide-react";
+import { FileText, MessageSquare, Search } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
@@ -10,16 +10,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate, useStore } from "@/lib/mock-store";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { downloadReportsExport, formatDate, useStore, type Comment, type Report, type ReportStatus } from "@/lib/api-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/reports")({ component: ReportsPage });
 
 function ReportsPage() {
-  const { reports, users, projects } = useStore();
+  const { currentUser, reports, users, projects, addComment, updateReport } = useStore();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [emp, setEmp] = useState("all");
+  const [date, setDate] = useState("");
+  const [commentReport, setCommentReport] = useState<Report | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [commentType, setCommentType] = useState<Comment["type"]>("Feedback");
+  const reviewStatuses: ReportStatus[] = ["Submitted", "Under Review", "Changes Required", "Reviewed", "Approved"];
 
   const filtered = reports.filter((r) => {
     const employee = users.find((u) => u.id === r.employeeId);
@@ -27,24 +35,29 @@ function ReportsPage() {
     const s = [employee?.name, project?.name, r.completed].some((x) => x?.toLowerCase().includes(search.toLowerCase()));
     const st = status === "all" || r.status === status;
     const e = emp === "all" || r.employeeId === emp;
-    return s && st && e;
+    const d = !date || r.date === date;
+    return s && st && e && d;
   });
 
   const exportCsv = () => {
-    const rows = [
-      ["Employee", "Date", "Project", "Time", "Status"],
-      ...filtered.map((r) => [
-        users.find((u) => u.id === r.employeeId)?.name ?? "",
-        r.date, projects.find((p) => p.id === r.projectId)?.name ?? "",
-        r.timeSpent.toString(), r.status,
-      ]),
-    ];
-    const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "reports.csv"; a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Exported CSV");
+    downloadReportsExport("csv")
+      .then(() => toast.success("Exported CSV"))
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Export failed"));
+  };
+
+  const saveComment = async () => {
+    if (!commentReport) return;
+    if (!commentText.trim()) { toast.error("Comment required"); return; }
+    await addComment(commentReport.id, {
+      authorId: currentUser?.id ?? "",
+      authorName: currentUser?.name ?? "Admin",
+      text: commentText,
+      type: commentType,
+    });
+    setCommentText("");
+    setCommentType("Feedback");
+    setCommentReport(null);
+    toast.success("Comment added");
   };
 
   return (
@@ -66,6 +79,7 @@ function ReportsPage() {
                 {users.filter((u) => u.role === "employee").map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-44" />
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
@@ -86,7 +100,6 @@ function ReportsPage() {
                   <TableHead>Summary</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-20" />
                 </TableRow></TableHeader>
                 <TableBody>
                   {filtered.map((r) => {
@@ -99,8 +112,26 @@ function ReportsPage() {
                         <TableCell>{project?.name}</TableCell>
                         <TableCell className="max-w-xs"><p className="truncate text-sm text-muted-foreground">{r.completed}</p></TableCell>
                         <TableCell>{r.timeSpent}h</TableCell>
-                        <TableCell><StatusBadge value={r.status} /></TableCell>
-                        <TableCell><Button asChild variant="ghost" size="sm"><Link to="/admin/reports/$id" params={{ id: r.id }}>Open</Link></Button></TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Select
+                              value={r.status}
+                              onValueChange={(value) => {
+                                updateReport(r.id, { status: value as ReportStatus });
+                                toast.success("Status updated");
+                              }}
+                            >
+                              <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {reviewStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                            <Button variant="outline" size="sm" onClick={() => setCommentReport(r)}>
+                              <MessageSquare className="mr-2 h-4 w-4" />
+                              Comment
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -110,6 +141,33 @@ function ReportsPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={commentReport !== null} onOpenChange={(open) => !open && setCommentReport(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add comment</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select value={commentType} onValueChange={(value) => setCommentType(value as Comment["type"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["Feedback", "Instruction", "Changes Required", "Approval"].map((type) => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Comment</Label>
+              <Textarea rows={4} value={commentText} onChange={(event) => setCommentText(event.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCommentReport(null)}>Cancel</Button>
+            <Button onClick={saveComment}>Add comment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

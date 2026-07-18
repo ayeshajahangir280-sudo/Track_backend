@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatDate, useStore } from "@/lib/mock-store";
+import { useStore } from "@/lib/api-store";
 
 export const Route = createFileRoute("/employee/projects")({ component: MyProjects });
 
@@ -16,12 +16,11 @@ function MyProjects() {
       <div className="grid gap-4 md:grid-cols-2">
         {mine.map((p) => (
           <Card key={p.id}>
-            <CardHeader><div className="flex items-start justify-between gap-3"><CardTitle className="text-base">{p.name}</CardTitle><StatusBadge value={p.status} /></div><p className="text-sm text-muted-foreground">{p.client}</p></CardHeader>
+            <CardHeader><div className="flex items-start justify-between gap-3"><CardTitle className="text-base">{p.name}</CardTitle><StatusBadge value={p.status} /></div></CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
               <div className="flex justify-between text-xs text-muted-foreground"><span>Progress</span><span>{p.progress}%</span></div>
               <Progress value={p.progress} className="h-2" />
-              <p className="text-xs text-muted-foreground">Deadline {formatDate(p.deadline)}</p>
             </CardContent>
           </Card>
         ))}

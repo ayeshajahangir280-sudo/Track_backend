@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { formatDate, useStore, type Project } from "@/lib/mock-store";
+import { useStore, type Project } from "@/lib/api-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/projects")({
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/projects")({
 });
 
 function ProjectsPage() {
-  const { projects, users, addProject, updateProject, archiveProject, logAudit } = useStore();
+  const { currentUser, projects, users, addProject, updateProject, archiveProject, logAudit } = useStore();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
@@ -31,7 +31,7 @@ function ProjectsPage() {
   const employees = users.filter((u) => u.role === "employee");
 
   const filtered = projects.filter((p) => {
-    const matchSearch = [p.name, p.client, p.description].some((s) => s.toLowerCase().includes(search.toLowerCase()));
+    const matchSearch = [p.name, p.description].some((s) => s.toLowerCase().includes(search.toLowerCase()));
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -43,7 +43,7 @@ function ProjectsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Projects"
-        description="Track all client and internal projects."
+        description="Track team projects."
         actions={<Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" /> Create Project</Button>}
       />
 
@@ -72,8 +72,7 @@ function ProjectsPage() {
               <CardContent className="flex flex-1 flex-col gap-4 p-5">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">{p.client}</p>
-                    <Link to="/admin/projects/$id" params={{ id: p.id }} className="mt-0.5 block truncate text-base font-semibold hover:underline">
+                    <Link to="/admin/projects/$id" params={{ id: p.id }} className="block truncate text-base font-semibold hover:underline">
                       {p.name}
                     </Link>
                   </div>
@@ -84,7 +83,7 @@ function ProjectsPage() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild><Link to="/admin/projects/$id" params={{ id: p.id }}><Eye className="mr-2 h-4 w-4" /> View</Link></DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive" onClick={() => { archiveProject(p.id); logAudit({ user: "Sarah Mitchell", action: "Archived project", target: p.name, type: "update" }); toast.success("Project archived"); }}>
+                      <DropdownMenuItem className="text-destructive" onClick={() => { archiveProject(p.id); logAudit({ user: currentUser?.name ?? "Admin", action: "Archived project", target: p.name, type: "update" }); toast.success("Project archived"); }}>
                         <Archive className="mr-2 h-4 w-4" /> Archive
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -100,9 +99,6 @@ function ProjectsPage() {
                     <span>Progress</span><span>{p.progress}%</span>
                   </div>
                   <Progress value={p.progress} className="h-2" />
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Deadline: {formatDate(p.deadline)}</span>
                 </div>
                 <div className="flex -space-x-2">
                   {p.assignees.map((id) => {
@@ -125,11 +121,11 @@ function ProjectsPage() {
         onSave={(data) => {
           if (editing) {
             updateProject(editing.id, data);
-            logAudit({ user: "Sarah Mitchell", action: "Updated project", target: data.name, type: "update" });
+            logAudit({ user: currentUser?.name ?? "Admin", action: "Updated project", target: data.name, type: "update" });
             toast.success("Project updated");
           } else {
             addProject(data);
-            logAudit({ user: "Sarah Mitchell", action: "Created project", target: data.name, type: "create" });
+            logAudit({ user: currentUser?.name ?? "Admin", action: "Created project", target: data.name, type: "create" });
             toast.success("Project created");
           }
           setOpen(false);
@@ -149,10 +145,7 @@ function ProjectDialog({
   onSave: (data: Omit<Project, "id" | "progress">) => void;
 }) {
   const [name, setName] = useState(editing?.name ?? "");
-  const [client, setClient] = useState(editing?.client ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
-  const [startDate, setStartDate] = useState(editing?.startDate ?? new Date().toISOString().slice(0, 10));
-  const [deadline, setDeadline] = useState(editing?.deadline ?? new Date().toISOString().slice(0, 10));
   const [priority, setPriority] = useState<Project["priority"]>(editing?.priority ?? "Medium");
   const [status, setStatus] = useState<Project["status"]>(editing?.status ?? "Planning");
   const [assignees, setAssignees] = useState<string[]>(editing?.assignees ?? []);
@@ -167,10 +160,6 @@ function ProjectDialog({
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Client</Label>
-            <Input value={client} onChange={(e) => setClient(e.target.value)} />
-          </div>
-          <div className="space-y-2">
             <Label>Priority</Label>
             <Select value={priority} onValueChange={(v) => setPriority(v as Project["priority"])}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -178,14 +167,6 @@ function ProjectDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Start date</Label>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Deadline</Label>
-            <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-          </div>
-          <div className="space-y-2 sm:col-span-2">
             <Label>Status</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as Project["status"])}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -218,8 +199,8 @@ function ProjectDialog({
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={() => {
-            if (!name || !client) { toast.error("Name and client are required"); return; }
-            onSave({ name, client, description, startDate, deadline, priority, status, assignees });
+            if (!name) { toast.error("Project name is required"); return; }
+            onSave({ name, description, priority, status, assignees });
           }}>{editing ? "Save" : "Create"}</Button>
         </DialogFooter>
       </DialogContent>

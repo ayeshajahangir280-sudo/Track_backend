@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Search, MoreHorizontal, Users } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useStore, type User } from "@/lib/mock-store";
+import { useStore, type User } from "@/lib/api-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/employees")({
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/admin/employees")({
 });
 
 function EmployeesPage() {
-  const { users, projects, tasks, addUser, updateUser, logAudit } = useStore();
+  const { currentUser, users, projects, reports, addUser, updateUser, resetUserPassword, logAudit } = useStore();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
@@ -29,29 +29,35 @@ function EmployeesPage() {
 
   const employees = users.filter((u) => u.role === "employee");
   const filtered = employees.filter((e) =>
-    [e.name, e.email, e.jobTitle, e.department].filter(Boolean).some((s) => s!.toLowerCase().includes(search.toLowerCase())),
+    [e.name, e.username]
+      .filter(Boolean)
+      .some((s) => s!.toLowerCase().includes(search.toLowerCase())),
   );
 
   const openAdd = () => { setEditing(null); setOpen(true); };
   const openEdit = (u: User) => { setEditing(u); setOpen(true); };
 
-  const save = (data: Omit<User, "id" | "role" | "status"> & { status?: User["status"] }) => {
-    if (editing) {
-      updateUser(editing.id, data);
-      logAudit({ user: "Sarah Mitchell", action: "Updated employee", target: data.name, type: "update" });
-      toast.success("Employee updated");
-    } else {
-      addUser({ ...data, role: "employee", status: data.status ?? "active" });
-      logAudit({ user: "Sarah Mitchell", action: "Created employee", target: data.name, type: "create" });
-      toast.success("Employee added");
+  const save = async (data: EmployeeFormData) => {
+    try {
+      if (editing) {
+        await updateUser(editing.id, data);
+        logAudit({ user: currentUser?.name ?? "Admin", action: "Updated employee", target: data.username, type: "update" });
+        toast.success("Employee updated");
+      } else {
+        await addUser({ ...data, role: "employee", status: data.status ?? "active" });
+        logAudit({ user: currentUser?.name ?? "Admin", action: "Created employee", target: data.username, type: "create" });
+        toast.success("Employee added");
+      }
+      setOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save employee.");
     }
-    setOpen(false);
   };
 
   const toggleStatus = (u: User) => {
     const next = u.status === "active" ? "inactive" : "active";
     updateUser(u.id, { status: next });
-    logAudit({ user: "Sarah Mitchell", action: next === "active" ? "Activated employee" : "Deactivated employee", target: u.name, type: "update" });
+    logAudit({ user: currentUser?.name ?? "Admin", action: next === "active" ? "Activated employee" : "Deactivated employee", target: u.name, type: "update" });
     toast.success(`${u.name} is now ${next}`);
     setConfirmId(null);
   };
@@ -82,10 +88,8 @@ function EmployeesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Employee</TableHead>
-                    <TableHead>Job title</TableHead>
-                    <TableHead>Department</TableHead>
                     <TableHead className="text-center">Projects</TableHead>
-                    <TableHead className="text-center">Pending tasks</TableHead>
+                    <TableHead className="text-center">Reports</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-10" />
                   </TableRow>
@@ -93,7 +97,7 @@ function EmployeesPage() {
                 <TableBody>
                   {filtered.map((u) => {
                     const empProjects = projects.filter((p) => p.assignees.includes(u.id)).length;
-                    const empPending = tasks.filter((t) => t.assigneeId === u.id && t.status !== "Completed").length;
+                    const empReports = reports.filter((r) => r.employeeId === u.id).length;
                     return (
                       <TableRow key={u.id}>
                         <TableCell>
@@ -101,14 +105,12 @@ function EmployeesPage() {
                             <UserAvatar name={u.name} />
                             <div className="min-w-0">
                               <p className="truncate font-medium">{u.name}</p>
-                              <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+                              <p className="truncate text-xs text-muted-foreground">@{u.username}</p>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{u.jobTitle ?? "—"}</TableCell>
-                        <TableCell>{u.department ?? "—"}</TableCell>
                         <TableCell className="text-center">{empProjects}</TableCell>
-                        <TableCell className="text-center">{empPending}</TableCell>
+                        <TableCell className="text-center">{empReports}</TableCell>
                         <TableCell><StatusBadge value={u.status} /></TableCell>
                         <TableCell>
                           <DropdownMenu>
@@ -118,7 +120,18 @@ function EmployeesPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openEdit(u)}>Edit</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => toast.info(`Viewing ${u.name}'s profile`)}>View Profile</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => toast.success("Password reset email sent (demo)")}>Reset Password</DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  try {
+                                    const temporaryPassword = await resetUserPassword(u.id);
+                                    toast.success(`Temporary password: ${temporaryPassword}`);
+                                  } catch (error) {
+                                    toast.error(error instanceof Error ? error.message : "Could not reset password.");
+                                  }
+                                }}
+                              >
+                                Reset Password
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="text-destructive" onClick={() => setConfirmId(u.id)}>
                                 {u.status === "active" ? "Deactivate" : "Activate"}
@@ -156,21 +169,29 @@ function EmployeesPage() {
   );
 }
 
+type EmployeeFormData = {
+  username: string;
+  status?: User["status"];
+  password?: string;
+};
+
 function EmployeeDialog({
   open, onClose, editing, onSave,
 }: {
   open: boolean;
   onClose: () => void;
   editing: User | null;
-  onSave: (data: Omit<User, "id" | "role" | "status"> & { status?: User["status"] }) => void;
+  onSave: (data: EmployeeFormData) => void;
 }) {
-  const [name, setName] = useState(editing?.name ?? "");
-  const [email, setEmail] = useState(editing?.email ?? "");
-  const [phone, setPhone] = useState(editing?.phone ?? "");
-  const [jobTitle, setJobTitle] = useState(editing?.jobTitle ?? "");
-  const [department, setDepartment] = useState(editing?.department ?? "");
+  const [username, setUsername] = useState(editing?.username ?? "");
+  const [password, setPassword] = useState("");
 
-  // reset when opening
+  useEffect(() => {
+    if (!open) return;
+    setUsername(editing?.username ?? "");
+    setPassword("");
+  }, [editing, open]);
+
   const dialogKey = editing?.id ?? "new";
 
   return (
@@ -179,34 +200,32 @@ function EmployeeDialog({
         <DialogHeader>
           <DialogTitle>{editing ? "Edit employee" : "Add employee"}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Full name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
-          </div>
+        <div className="grid gap-4">
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@company.com" />
+            <Label>Username</Label>
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="jane" autoComplete="username" />
           </div>
-          <div className="space-y-2">
-            <Label>Phone</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555…" />
-          </div>
-          <div className="space-y-2">
-            <Label>Job title</Label>
-            <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Product Designer" />
-          </div>
-          <div className="space-y-2">
-            <Label>Department</Label>
-            <Input value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="Design" />
-          </div>
+          {!editing && (
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Temporary password"
+                type="password"
+                autoComplete="new-password"
+              />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button
             onClick={() => {
-              if (!name || !email) { toast.error("Name and email are required"); return; }
-              onSave({ name, email, phone, jobTitle, department });
+              const cleanUsername = username.trim().toLowerCase();
+              if (!cleanUsername) { toast.error("Username is required"); return; }
+              if (!editing && !password) { toast.error("Password is required for new employees"); return; }
+              onSave({ username: cleanUsername, ...(editing ? {} : { password }) });
             }}
           >
             {editing ? "Save changes" : "Add employee"}

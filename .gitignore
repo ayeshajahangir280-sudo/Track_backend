@@ -14,7 +14,23 @@ dist-ssr
 .vinxi
 .tanstack/**
 .nitro
+.vercel
 *.local
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/.venv/
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+.coverage
+htmlcov/
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Wrangler / Cloudflare
 .wrangler/

@@ -9,31 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EmployeeRouteImport } from './routes/employee'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EmployeeIndexRouteImport } from './routes/employee.index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as EmployeeTasksRouteImport } from './routes/employee.tasks'
-import { Route as EmployeeReportsRouteImport } from './routes/employee.reports'
-import { Route as EmployeeReportRouteImport } from './routes/employee.report'
-import { Route as EmployeeProjectsRouteImport } from './routes/employee.projects'
-import { Route as EmployeeProfileRouteImport } from './routes/employee.profile'
-import { Route as EmployeeNotificationsRouteImport } from './routes/employee.notifications'
-import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminReportsRouteImport } from './routes/admin.reports'
-import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
-import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
-import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
-import { Route as EmployeeReportsIdRouteImport } from './routes/employee.reports.$id'
-import { Route as AdminReportsIdRouteImport } from './routes/admin.reports.$id'
+import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
+import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
+import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as EmployeeIndexRouteImport } from './routes/employee.index'
+import { Route as EmployeeNotificationsRouteImport } from './routes/employee.notifications'
+import { Route as EmployeeProfileRouteImport } from './routes/employee.profile'
+import { Route as EmployeeProjectsRouteImport } from './routes/employee.projects'
+import { Route as EmployeeReportRouteImport } from './routes/employee.report'
+import { Route as EmployeeReportsRouteImport } from './routes/employee.reports'
 import { Route as AdminProjectsIdRouteImport } from './routes/admin.projects.$id'
+import { Route as AdminReportsIdRouteImport } from './routes/admin.reports.$id'
+import { Route as EmployeeReportsIdRouteImport } from './routes/employee.reports.$id'
 
-const EmployeeRoute = EmployeeRouteImport.update({
-  id: '/employee',
-  path: '/employee',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -41,79 +39,14 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const EmployeeRoute = EmployeeRouteImport.update({
+  id: '/employee',
+  path: '/employee',
   getParentRoute: () => rootRouteImport,
-} as any)
-const EmployeeIndexRoute = EmployeeIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => EmployeeRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const EmployeeTasksRoute = EmployeeTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => EmployeeRoute,
-} as any)
-const EmployeeReportsRoute = EmployeeReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => EmployeeRoute,
-} as any)
-const EmployeeReportRoute = EmployeeReportRouteImport.update({
-  id: '/report',
-  path: '/report',
-  getParentRoute: () => EmployeeRoute,
-} as any)
-const EmployeeProjectsRoute = EmployeeProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => EmployeeRoute,
-} as any)
-const EmployeeProfileRoute = EmployeeProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => EmployeeRoute,
-} as any)
-const EmployeeNotificationsRoute = EmployeeNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => EmployeeRoute,
-} as any)
-const AdminTasksRoute = AdminTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProjectsRoute = AdminProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminEmployeesRoute = AdminEmployeesRouteImport.update({
-  id: '/employees',
-  path: '/employees',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -121,20 +54,75 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
-const EmployeeReportsIdRoute = EmployeeReportsIdRouteImport.update({
+const AdminEmployeesRoute = AdminEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProjectsRoute = AdminProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const EmployeeIndexRoute = EmployeeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => EmployeeRoute,
+} as any)
+const EmployeeNotificationsRoute = EmployeeNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => EmployeeRoute,
+} as any)
+const EmployeeProfileRoute = EmployeeProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => EmployeeRoute,
+} as any)
+const EmployeeProjectsRoute = EmployeeProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => EmployeeRoute,
+} as any)
+const EmployeeReportRoute = EmployeeReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => EmployeeRoute,
+} as any)
+const EmployeeReportsRoute = EmployeeReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => EmployeeRoute,
+} as any)
+const AdminProjectsIdRoute = AdminProjectsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => EmployeeReportsRoute,
+  getParentRoute: () => AdminProjectsRoute,
 } as any)
 const AdminReportsIdRoute = AdminReportsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AdminReportsRoute,
 } as any)
-const AdminProjectsIdRoute = AdminProjectsIdRouteImport.update({
+const EmployeeReportsIdRoute = EmployeeReportsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => AdminProjectsRoute,
+  getParentRoute: () => EmployeeReportsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -147,13 +135,11 @@ export interface FileRoutesByFullPath {
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/tasks': typeof AdminTasksRoute
   '/employee/notifications': typeof EmployeeNotificationsRoute
   '/employee/profile': typeof EmployeeProfileRoute
   '/employee/projects': typeof EmployeeProjectsRoute
   '/employee/report': typeof EmployeeReportRoute
   '/employee/reports': typeof EmployeeReportsRouteWithChildren
-  '/employee/tasks': typeof EmployeeTasksRoute
   '/admin/': typeof AdminIndexRoute
   '/employee/': typeof EmployeeIndexRoute
   '/admin/projects/$id': typeof AdminProjectsIdRoute
@@ -168,13 +154,11 @@ export interface FileRoutesByTo {
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/tasks': typeof AdminTasksRoute
   '/employee/notifications': typeof EmployeeNotificationsRoute
   '/employee/profile': typeof EmployeeProfileRoute
   '/employee/projects': typeof EmployeeProjectsRoute
   '/employee/report': typeof EmployeeReportRoute
   '/employee/reports': typeof EmployeeReportsRouteWithChildren
-  '/employee/tasks': typeof EmployeeTasksRoute
   '/admin': typeof AdminIndexRoute
   '/employee': typeof EmployeeIndexRoute
   '/admin/projects/$id': typeof AdminProjectsIdRoute
@@ -192,13 +176,11 @@ export interface FileRoutesById {
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/tasks': typeof AdminTasksRoute
   '/employee/notifications': typeof EmployeeNotificationsRoute
   '/employee/profile': typeof EmployeeProfileRoute
   '/employee/projects': typeof EmployeeProjectsRoute
   '/employee/report': typeof EmployeeReportRoute
   '/employee/reports': typeof EmployeeReportsRouteWithChildren
-  '/employee/tasks': typeof EmployeeTasksRoute
   '/admin/': typeof AdminIndexRoute
   '/employee/': typeof EmployeeIndexRoute
   '/admin/projects/$id': typeof AdminProjectsIdRoute
@@ -217,13 +199,11 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/settings'
-    | '/admin/tasks'
     | '/employee/notifications'
     | '/employee/profile'
     | '/employee/projects'
     | '/employee/report'
     | '/employee/reports'
-    | '/employee/tasks'
     | '/admin/'
     | '/employee/'
     | '/admin/projects/$id'
@@ -238,13 +218,11 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/settings'
-    | '/admin/tasks'
     | '/employee/notifications'
     | '/employee/profile'
     | '/employee/projects'
     | '/employee/report'
     | '/employee/reports'
-    | '/employee/tasks'
     | '/admin'
     | '/employee'
     | '/admin/projects/$id'
@@ -261,13 +239,11 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/settings'
-    | '/admin/tasks'
     | '/employee/notifications'
     | '/employee/profile'
     | '/employee/projects'
     | '/employee/report'
     | '/employee/reports'
-    | '/employee/tasks'
     | '/admin/'
     | '/employee/'
     | '/admin/projects/$id'
@@ -283,11 +259,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/employee': {
-      id: '/employee'
-      path: '/employee'
-      fullPath: '/employee'
-      preLoaderRoute: typeof EmployeeRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -297,109 +273,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/employee': {
+      id: '/employee'
+      path: '/employee'
+      fullPath: '/employee'
+      preLoaderRoute: typeof EmployeeRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/employee/': {
-      id: '/employee/'
-      path: '/'
-      fullPath: '/employee/'
-      preLoaderRoute: typeof EmployeeIndexRouteImport
-      parentRoute: typeof EmployeeRoute
     }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/employee/tasks': {
-      id: '/employee/tasks'
-      path: '/tasks'
-      fullPath: '/employee/tasks'
-      preLoaderRoute: typeof EmployeeTasksRouteImport
-      parentRoute: typeof EmployeeRoute
-    }
-    '/employee/reports': {
-      id: '/employee/reports'
-      path: '/reports'
-      fullPath: '/employee/reports'
-      preLoaderRoute: typeof EmployeeReportsRouteImport
-      parentRoute: typeof EmployeeRoute
-    }
-    '/employee/report': {
-      id: '/employee/report'
-      path: '/report'
-      fullPath: '/employee/report'
-      preLoaderRoute: typeof EmployeeReportRouteImport
-      parentRoute: typeof EmployeeRoute
-    }
-    '/employee/projects': {
-      id: '/employee/projects'
-      path: '/projects'
-      fullPath: '/employee/projects'
-      preLoaderRoute: typeof EmployeeProjectsRouteImport
-      parentRoute: typeof EmployeeRoute
-    }
-    '/employee/profile': {
-      id: '/employee/profile'
-      path: '/profile'
-      fullPath: '/employee/profile'
-      preLoaderRoute: typeof EmployeeProfileRouteImport
-      parentRoute: typeof EmployeeRoute
-    }
-    '/employee/notifications': {
-      id: '/employee/notifications'
-      path: '/notifications'
-      fullPath: '/employee/notifications'
-      preLoaderRoute: typeof EmployeeNotificationsRouteImport
-      parentRoute: typeof EmployeeRoute
-    }
-    '/admin/tasks': {
-      id: '/admin/tasks'
-      path: '/tasks'
-      fullPath: '/admin/tasks'
-      preLoaderRoute: typeof AdminTasksRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/projects': {
-      id: '/admin/projects'
-      path: '/projects'
-      fullPath: '/admin/projects'
-      preLoaderRoute: typeof AdminProjectsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/notifications': {
-      id: '/admin/notifications'
-      path: '/notifications'
-      fullPath: '/admin/notifications'
-      preLoaderRoute: typeof AdminNotificationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/employees': {
-      id: '/admin/employees'
-      path: '/employees'
-      fullPath: '/admin/employees'
-      preLoaderRoute: typeof AdminEmployeesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/audit': {
@@ -409,12 +294,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/employee/reports/$id': {
-      id: '/employee/reports/$id'
+    '/admin/employees': {
+      id: '/admin/employees'
+      path: '/employees'
+      fullPath: '/admin/employees'
+      preLoaderRoute: typeof AdminEmployeesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/projects': {
+      id: '/admin/projects'
+      path: '/projects'
+      fullPath: '/admin/projects'
+      preLoaderRoute: typeof AdminProjectsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/employee/': {
+      id: '/employee/'
+      path: '/'
+      fullPath: '/employee/'
+      preLoaderRoute: typeof EmployeeIndexRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
+    '/employee/notifications': {
+      id: '/employee/notifications'
+      path: '/notifications'
+      fullPath: '/employee/notifications'
+      preLoaderRoute: typeof EmployeeNotificationsRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
+    '/employee/profile': {
+      id: '/employee/profile'
+      path: '/profile'
+      fullPath: '/employee/profile'
+      preLoaderRoute: typeof EmployeeProfileRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
+    '/employee/projects': {
+      id: '/employee/projects'
+      path: '/projects'
+      fullPath: '/employee/projects'
+      preLoaderRoute: typeof EmployeeProjectsRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
+    '/employee/report': {
+      id: '/employee/report'
+      path: '/report'
+      fullPath: '/employee/report'
+      preLoaderRoute: typeof EmployeeReportRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
+    '/employee/reports': {
+      id: '/employee/reports'
+      path: '/reports'
+      fullPath: '/employee/reports'
+      preLoaderRoute: typeof EmployeeReportsRouteImport
+      parentRoute: typeof EmployeeRoute
+    }
+    '/admin/projects/$id': {
+      id: '/admin/projects/$id'
       path: '/$id'
-      fullPath: '/employee/reports/$id'
-      preLoaderRoute: typeof EmployeeReportsIdRouteImport
-      parentRoute: typeof EmployeeReportsRoute
+      fullPath: '/admin/projects/$id'
+      preLoaderRoute: typeof AdminProjectsIdRouteImport
+      parentRoute: typeof AdminProjectsRoute
     }
     '/admin/reports/$id': {
       id: '/admin/reports/$id'
@@ -423,12 +385,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReportsIdRouteImport
       parentRoute: typeof AdminReportsRoute
     }
-    '/admin/projects/$id': {
-      id: '/admin/projects/$id'
+    '/employee/reports/$id': {
+      id: '/employee/reports/$id'
       path: '/$id'
-      fullPath: '/admin/projects/$id'
-      preLoaderRoute: typeof AdminProjectsIdRouteImport
-      parentRoute: typeof AdminProjectsRoute
+      fullPath: '/employee/reports/$id'
+      preLoaderRoute: typeof EmployeeReportsIdRouteImport
+      parentRoute: typeof EmployeeReportsRoute
     }
   }
 }
@@ -464,7 +426,6 @@ interface AdminRouteChildren {
   AdminProjectsRoute: typeof AdminProjectsRouteWithChildren
   AdminReportsRoute: typeof AdminReportsRouteWithChildren
   AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminTasksRoute: typeof AdminTasksRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -475,7 +436,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProjectsRoute: AdminProjectsRouteWithChildren,
   AdminReportsRoute: AdminReportsRouteWithChildren,
   AdminSettingsRoute: AdminSettingsRoute,
-  AdminTasksRoute: AdminTasksRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -499,7 +459,6 @@ interface EmployeeRouteChildren {
   EmployeeProjectsRoute: typeof EmployeeProjectsRoute
   EmployeeReportRoute: typeof EmployeeReportRoute
   EmployeeReportsRoute: typeof EmployeeReportsRouteWithChildren
-  EmployeeTasksRoute: typeof EmployeeTasksRoute
   EmployeeIndexRoute: typeof EmployeeIndexRoute
 }
 
@@ -509,7 +468,6 @@ const EmployeeRouteChildren: EmployeeRouteChildren = {
   EmployeeProjectsRoute: EmployeeProjectsRoute,
   EmployeeReportRoute: EmployeeReportRoute,
   EmployeeReportsRoute: EmployeeReportsRouteWithChildren,
-  EmployeeTasksRoute: EmployeeTasksRoute,
   EmployeeIndexRoute: EmployeeIndexRoute,
 }
 
@@ -525,3 +483,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

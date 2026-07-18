@@ -1,17 +1,18 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
+  HeadContent,
   Link,
+  Outlet,
+  Scripts,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { MockStoreProvider } from "@/lib/mock-store";
+import { ApiStoreProvider } from "@/lib/api-store";
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -46,9 +47,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
@@ -79,21 +78,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Prism — Project Tracking & Employee Reporting" },
-      { name: "description", content: "Modern SaaS dashboard for tracking projects, tasks and daily employee work reports." },
-      { name: "author", content: "Prism" },
-      { property: "og:title", content: "Prism — Project Tracking & Employee Reporting" },
-      { property: "og:description", content: "Modern SaaS dashboard for tracking projects, tasks and daily employee work reports." },
+      { title: `${APP_NAME} - Project Tracking & Employee Reporting` },
+      { name: "description", content: APP_TAGLINE },
+      { name: "author", content: APP_NAME },
+      { property: "og:title", content: `${APP_NAME} - Project Tracking & Employee Reporting` },
+      { property: "og:description", content: APP_TAGLINE },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/favicon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -104,12 +103,45 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(() => {
+  const shouldRemove = (name) =>
+    name === "bis_skin_checked" ||
+    name === "bis_register" ||
+    name.startsWith("__processed_");
+
+  const clean = (root) => {
+    const nodes = [root, ...root.querySelectorAll("*")];
+    for (const node of nodes) {
+      for (const attr of Array.from(node.attributes || [])) {
+        if (shouldRemove(attr.name)) node.removeAttribute(attr.name);
+      }
+    }
+  };
+
+  clean(document.documentElement);
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "attributes" && shouldRemove(mutation.attributeName || "")) {
+        mutation.target.removeAttribute(mutation.attributeName);
+      }
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true, subtree: true });
+  window.addEventListener("load", () => setTimeout(() => observer.disconnect(), 3000), { once: true });
+})();
+            `.trim(),
+          }}
+        />
         <Scripts />
       </body>
     </html>
@@ -121,10 +153,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MockStoreProvider>
+      <ApiStoreProvider>
         <Outlet />
         <Toaster richColors position="top-right" />
-      </MockStoreProvider>
+      </ApiStoreProvider>
     </QueryClientProvider>
   );
 }

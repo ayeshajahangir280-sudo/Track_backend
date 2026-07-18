@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { initials } from "@/lib/mock-store";
+import { initials } from "@/lib/api-store";
 import { cn } from "@/lib/utils";
 
 export function UserAvatar({ name, src, className }: { name: string; src?: string; className?: string }) {
