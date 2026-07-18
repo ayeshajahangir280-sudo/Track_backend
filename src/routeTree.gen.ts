@@ -13,6 +13,7 @@ import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
 
 const EmployeeRoute = EmployeeRouteImport.update({
   id: '/employee',
@@ -34,16 +35,23 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminEmployeesRoute = AdminEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/employee': typeof EmployeeRoute
+  '/admin/employees': typeof AdminEmployeesRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/employee': typeof EmployeeRoute
+  '/admin/employees': typeof AdminEmployeesRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -51,14 +59,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/employee': typeof EmployeeRoute
+  '/admin/employees': typeof AdminEmployeesRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/employee' | '/admin/'
+  fullPaths: '/' | '/admin' | '/employee' | '/admin/employees' | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/employee' | '/admin'
-  id: '__root__' | '/' | '/admin' | '/employee' | '/admin/'
+  to: '/' | '/employee' | '/admin/employees' | '/admin'
+  id: '__root__' | '/' | '/admin' | '/employee' | '/admin/employees' | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -97,14 +106,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/employees': {
+      id: '/admin/employees'
+      path: '/employees'
+      fullPath: '/admin/employees'
+      preLoaderRoute: typeof AdminEmployeesRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminEmployeesRoute: typeof AdminEmployeesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminEmployeesRoute: AdminEmployeesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
