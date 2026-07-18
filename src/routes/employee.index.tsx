@@ -25,7 +25,7 @@ function EmployeeDashboard() {
         <Button asChild><Link to="/employee/report">{submittedToday ? "Update today's report" : "Submit today's report"}</Link></Button>
       } />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard label="Active tasks" value={active} icon={ClipboardList} tone="info" />
+        <SummaryCard label="Active tasks" value={active} icon={ClipboardList} tone="accent" />
         <SummaryCard label="Completed" value={completed} icon={CheckCircle2} tone="success" />
         <SummaryCard label="Pending reviews" value={pending} icon={Clock} tone="warning" />
         <SummaryCard label="Total reports" value={myReports.length} icon={FileText} />
