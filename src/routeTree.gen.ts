@@ -16,6 +16,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
+import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminEmployeesRouteImport } from './routes/admin.employees'
 import { Route as AdminReportsIdRouteImport } from './routes/admin.reports.$id'
 import { Route as AdminProjectsIdRouteImport } from './routes/admin.projects.$id'
@@ -55,6 +56,11 @@ const AdminProjectsRoute = AdminProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEmployeesRoute = AdminEmployeesRouteImport.update({
   id: '/employees',
   path: '/employees',
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/employee': typeof EmployeeRoute
   '/admin/employees': typeof AdminEmployeesRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/employee': typeof EmployeeRoute
   '/admin/employees': typeof AdminEmployeesRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/employee': typeof EmployeeRoute
   '/admin/employees': typeof AdminEmployeesRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/projects': typeof AdminProjectsRouteWithChildren
   '/admin/reports': typeof AdminReportsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/employee'
     | '/admin/employees'
+    | '/admin/notifications'
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/tasks'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/'
     | '/employee'
     | '/admin/employees'
+    | '/admin/notifications'
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/tasks'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/employee'
     | '/admin/employees'
+    | '/admin/notifications'
     | '/admin/projects'
     | '/admin/reports'
     | '/admin/tasks'
@@ -202,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProjectsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/employees': {
       id: '/admin/employees'
       path: '/employees'
@@ -252,6 +271,7 @@ const AdminReportsRouteWithChildren = AdminReportsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminEmployeesRoute: typeof AdminEmployeesRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminProjectsRoute: typeof AdminProjectsRouteWithChildren
   AdminReportsRoute: typeof AdminReportsRouteWithChildren
   AdminTasksRoute: typeof AdminTasksRoute
@@ -260,6 +280,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminEmployeesRoute: AdminEmployeesRoute,
+  AdminNotificationsRoute: AdminNotificationsRoute,
   AdminProjectsRoute: AdminProjectsRouteWithChildren,
   AdminReportsRoute: AdminReportsRouteWithChildren,
   AdminTasksRoute: AdminTasksRoute,
