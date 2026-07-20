@@ -163,7 +163,7 @@ class DailyReportViewSet(viewsets.ModelViewSet):
                 report.employee.full_name,
                 report.employee.department,
                 report.report_date.isoformat(),
-                report.project.name,
+                report.project.name if report.project else "",
                 report.work_completed,
                 float(report.time_spent_hours),
                 report.status,

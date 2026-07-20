@@ -1,3 +1,6 @@
+from datetime import date
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -7,12 +10,26 @@ from reports.models import DailyReport, ReportComment
 User = get_user_model()
 
 
+class ReportCommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="author.full_name", read_only=True)
+    author_role = serializers.CharField(source="author.role", read_only=True)
+
+    class Meta:
+        model = ReportComment
+        fields = ("id", "report", "author", "author_name", "author_role", "comment", "comment_type", "created_at", "updated_at")
+        read_only_fields = ("id", "author", "author_name", "author_role", "created_at", "updated_at")
+
+
 class DailyReportListSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.full_name", read_only=True)
     employee_email = serializers.EmailField(source="employee.email", read_only=True)
     department = serializers.CharField(source="employee.department", read_only=True)
-    project_name = serializers.CharField(source="project.name", read_only=True)
+    project_name = serializers.SerializerMethodField()
     reviewed_by_name = serializers.CharField(source="reviewed_by.full_name", read_only=True)
+    comments = ReportCommentSerializer(many=True, read_only=True)
+
+    def get_project_name(self, obj):
+        return obj.project.name if obj.project else ""
 
     class Meta:
         model = DailyReport
@@ -28,6 +45,7 @@ class DailyReportListSerializer(serializers.ModelSerializer):
             "work_completed",
             "time_spent_hours",
             "status",
+            "comments",
             "submitted_at",
             "reviewed_at",
             "reviewed_by",
@@ -37,23 +55,8 @@ class DailyReportListSerializer(serializers.ModelSerializer):
         )
 
 
-class ReportCommentSerializer(serializers.ModelSerializer):
-    author_name = serializers.CharField(source="author.full_name", read_only=True)
-    author_role = serializers.CharField(source="author.role", read_only=True)
-
-    class Meta:
-        model = ReportComment
-        fields = ("id", "report", "author", "author_name", "author_role", "comment", "comment_type", "created_at", "updated_at")
-        read_only_fields = ("id", "author", "author_name", "author_role", "created_at", "updated_at")
-
-
 class DailyReportDetailSerializer(DailyReportListSerializer):
-    comments = ReportCommentSerializer(many=True, read_only=True)
-
-    class Meta(DailyReportListSerializer.Meta):
-        fields = DailyReportListSerializer.Meta.fields + (
-            "comments",
-        )
+    pass
 
 
 class DailyReportCreateUpdateSerializer(serializers.ModelSerializer):
@@ -67,7 +70,12 @@ class DailyReportCreateUpdateSerializer(serializers.ModelSerializer):
             "time_spent_hours",
             "status",
         )
-        extra_kwargs = {"employee": {"required": False}}
+        extra_kwargs = {
+            "employee": {"required": False},
+            "report_date": {"required": False, "default": date.today},
+            "project": {"required": False, "allow_null": True},
+            "time_spent_hours": {"required": False, "default": Decimal("0")},
+        }
         validators = []
 
     def validate_status(self, value):
@@ -77,6 +85,8 @@ class DailyReportCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_time_spent_hours(self, value):
+        if value is None:
+            return Decimal("0")
         if value < 0:
             raise serializers.ValidationError("Time spent must be zero or greater.")
         return value
